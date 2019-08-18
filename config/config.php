@@ -1,5 +1,7 @@
 <?php
 return [
+	'enable' => env('PROXY_CURL_ENABLE'),
+
 	/**
 	 * 芝麻HTTP代理
 	 * @linnk http://h.zhimaruanjian.com/getapi/#obtain_ip
