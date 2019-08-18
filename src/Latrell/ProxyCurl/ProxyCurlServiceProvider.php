@@ -41,13 +41,10 @@ class ProxyCurlServiceProvider extends ServiceProvider
 
 		$this->app->singleton('proxy-curl', function ($app) {
 			$enable = $app->config->get('proxy-curl.enable');
-			if ($enable) {
-				$pack = $app->config->get('proxy-curl.pack');
-				$time = $app->config->get('proxy-curl.time');
-				$strict = $app->config->get('proxy-curl.strict');
-				return new ProxyCurl($pack, $time, $strict);
-			}
-			return new Curl;
+			$pack = $app->config->get('proxy-curl.pack');
+			$time = $app->config->get('proxy-curl.time');
+			$strict = $app->config->get('proxy-curl.strict');
+			return new ProxyCurl($enable, $pack, $time, $strict);
 		});
 
 		$this->registerCommands();

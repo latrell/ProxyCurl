@@ -9,6 +9,8 @@ use Latrell\ProxyCurl\Exception as ProxyCurlException;
 
 class ProxyCurl
 {
+	protected $enable;
+
 	protected $pack;
 
 	/**
@@ -26,8 +28,9 @@ class ProxyCurl
 	 */
 	protected $strict;
 
-	public function __construct($pack, $time, $strict)
+	public function __construct($enable, $pack, $time, $strict)
 	{
+		$this->enable = $enable;
 		$this->pack = $pack;
 		$this->time = $time;
 		$this->strict = $strict;
@@ -278,6 +281,10 @@ class ProxyCurl
 	 */
 	protected function setProxy()
 	{
+		if (! $this->enable) {
+			return;
+		}
+
 		$proxy = null;
 		try {
 			$proxy = $this->getShortS5Proxy();
