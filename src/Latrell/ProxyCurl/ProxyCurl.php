@@ -10,13 +10,13 @@ use Latrell\ProxyCurl\Exception as ProxyCurlException;
 class ProxyCurl
 {
 	protected $enable;
-
-	protected $pack;
+	protected $pack, $time;
+	protected $interval;
 
 	/**
-	 * @var Curl
+	 * @var bool 当地理位置没有代理时，是否使用全国随机IP
 	 */
-	protected $curl;
+	protected $strict;
 
 	/**
 	 * @var string IP城市代码，默认全国。
@@ -24,15 +24,16 @@ class ProxyCurl
 	protected $city_code;
 
 	/**
-	 * @var bool 当地理位置没有代理时，是否使用全国随机IP
+	 * @var Curl
 	 */
-	protected $strict;
+	protected $curl;
 
-	public function __construct($enable, $pack, $time, $strict)
+	public function __construct($enable, $pack, $time, $interval, $strict)
 	{
 		$this->enable = $enable;
 		$this->pack = $pack;
 		$this->time = $time;
+		$this->interval = $interval;
 		$this->strict = $strict;
 	}
 
@@ -221,7 +222,7 @@ class ProxyCurl
 		$this->setProxy();
 		$this->curl->get($url, $data);
 		if ($this->error) {
-			if (!$this->strict && $this->error_code === 7) {
+			if (! $this->strict && $this->error_code === 7) {
 				$this->resetProxy();
 				$this->curl->get($url, $data);
 			}
@@ -243,7 +244,7 @@ class ProxyCurl
 		$this->setProxy();
 		$this->curl->post($url, $data);
 		if ($this->error) {
-			if (!$this->strict && $this->error_code === 7) {
+			if (! $this->strict && $this->error_code === 7) {
 				$this->resetProxy();
 				$this->curl->post($url, $data);
 			}

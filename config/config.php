@@ -16,7 +16,13 @@ return [
 	'time' => env('PROXY_CURL_TIME', 1),
 
 	/**
-	 * 非严格模式下，当地理位置没有代理时，将使用全国随机IP
+	 * IP限速间隔时间
+	 * 当大于零时，间隔时间内发起的请求会强制申请新IP
+	 */
+	'interval' => env('PROXY_CURL_INTERVAL', 0),
+
+	/**
+	 * 非严格模式下，当指定城市没有代理时，将使用全国随机IP
 	 */
 	'strict' => env('PROXY_CURL_STRICT', false),
 ];
