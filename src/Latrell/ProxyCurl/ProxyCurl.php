@@ -223,6 +223,7 @@ class ProxyCurl
 			$proxy->timeout = Carbon::parse($json->data[0]->expire_time);
 		}
 
+		$proxy->use_time = now();
 		Redis::rpush($ip_list_key, serialize($proxy));
 		return $proxy;
 	}
