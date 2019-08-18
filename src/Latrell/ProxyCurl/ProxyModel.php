@@ -9,6 +9,7 @@ class ProxyModel
 	public $address;
 	public $isp;
 	public $timeout;
+	public $use_time;
 
 	public function __toString()
 	{

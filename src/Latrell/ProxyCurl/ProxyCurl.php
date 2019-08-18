@@ -5,6 +5,7 @@ namespace Latrell\ProxyCurl;
 use Curl\Curl;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 use Latrell\ProxyCurl\Exception as ProxyCurlException;
 
 class ProxyCurl
@@ -155,9 +156,26 @@ class ProxyCurl
 	public function getShortS5Proxy($force = false)
 	{
 		$proxy = null;
-		$cache_key = 'ShortS5Proxy@city:' . $this->city_code;
-		if ($force || ! ($proxy = Cache::get($cache_key))) {
 
+		// 在Redis中缓存使用过的IP列表。
+		$ip_list_key = "ShortS5Proxy@city:{$this->city_code}";
+
+		// 若不跳过缓存，则从使用过的IP列表中获取。
+		if (! $force) {
+			// 若获取到过期的代理，则丢弃并继续获取，
+			// 直至获取到未过期代理或列表尾部。
+			do {
+				$proxy = unserialize(Redis::lpop($ip_list_key));
+			} while ($proxy instanceof ProxyModel && $proxy->timeout < now()->subSeconds(5));
+		}
+
+		// 若代理最近使用时间小于间隔时间，则放回IP列表尾部，强制申请新的IP。
+		if ($proxy && $proxy->use_time > now()->subSeconds($this->interval)) {
+			Redis::rpush($ip_list_key, serialize($proxy));
+			$proxy = null;
+		}
+
+		if (! $proxy) {
 			// 请求频率限制2秒一次，这里限制5秒，因为HTTP请求可能需要占用3秒。
 			Cache::lock('ShortS5Proxy', 5)->block(10);
 
@@ -203,8 +221,9 @@ class ProxyCurl
 			$proxy->address = $json->data[0]->city;
 			$proxy->isp = $json->data[0]->isp;
 			$proxy->timeout = Carbon::parse($json->data[0]->expire_time);
-			Cache::put($cache_key, $proxy, $proxy->timeout->subSeconds(5));
 		}
+
+		Redis::rpush($ip_list_key, serialize($proxy));
 		return $proxy;
 	}
 
