@@ -1,0 +1,28 @@
+{
+	"name": "latrell/proxy-curl",
+    "license" : "MIT",
+	"authors": [
+		{
+			"name": "Latrell Chan",
+			"email": "i@latrell.me"
+		}
+	],
+	"require": {
+		"curl/curl": "^2.2"
+	},
+	"autoload": {
+		"psr-4": {
+			"Latrell\\ProxyCurl\\": "src/Latrell/ProxyCurl/"
+		}
+	},
+	"extra": {
+		"laravel": {
+			"providers": [
+				"Latrell\\ProxyCurl\\ProxyCurlServiceProvider"
+			],
+			"aliases": {
+				"Ethereum": "Latrell\\ProxyCurl\\Facades\\ProxyCurl"
+			}
+		}
+	}
+}
