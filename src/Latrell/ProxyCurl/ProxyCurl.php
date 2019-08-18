@@ -220,6 +220,12 @@ class ProxyCurl
 	{
 		$this->setProxy();
 		$this->curl->get($url, $data);
+		if ($this->error) {
+			if (!$this->strict && $this->error_code === 7) {
+				$this->resetProxy();
+				$this->curl->get($url, $data);
+			}
+		}
 		return $this;
 	}
 
@@ -236,6 +242,12 @@ class ProxyCurl
 	{
 		$this->setProxy();
 		$this->curl->post($url, $data);
+		if ($this->error) {
+			if (!$this->strict && $this->error_code === 7) {
+				$this->resetProxy();
+				$this->curl->post($url, $data);
+			}
+		}
 		return $this;
 	}
 
@@ -275,16 +287,27 @@ class ProxyCurl
 	}
 
 	/**
+	 * 重置CURL代理配置
+	 */
+	protected function resetProxy()
+	{
+		$this->setOpt(CURLOPT_PROXY, null);
+		$this->setOpt(CURLOPT_PROXYPORT, null);
+		$this->setOpt(CURLOPT_PROXYTYPE, null);
+		$this->setOpt(CURLOPT_PROXYAUTH, null);
+	}
+
+	/**
 	 * 设置使用的代理
 	 *
 	 * @throws Exception
 	 */
 	protected function setProxy()
 	{
+		$this->resetProxy();
 		if (! $this->enable) {
 			return;
 		}
-
 		$proxy = null;
 		try {
 			$proxy = $this->getShortS5Proxy();
