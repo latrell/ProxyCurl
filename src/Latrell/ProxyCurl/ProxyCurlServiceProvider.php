@@ -25,7 +25,7 @@ class ProxyCurlServiceProvider extends ServiceProvider
 	public function boot()
 	{
 		$this->publishes([
-			__DIR__ . '/../../config/config.php' => config_path('proxy-curl.php')
+			__DIR__ . '/../../../config/config.php' => config_path('proxy-curl.php')
 		]);
 	}
 
@@ -36,7 +36,7 @@ class ProxyCurlServiceProvider extends ServiceProvider
 	 */
 	public function register()
 	{
-		$this->mergeConfigFrom(__DIR__ . '/../../config/config.php', 'proxy-curl');
+		$this->mergeConfigFrom(__DIR__ . '/../../../config/config.php', 'proxy-curl');
 
 		$this->app->singleton('proxy-curl', function ($app) {
 			$pack = $app->config->get('proxy-curl.pack');

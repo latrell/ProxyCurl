@@ -1,5 +1,11 @@
 {
 	"name": "latrell/proxy-curl",
+	"description": "Laravel extension for CURL requests using a third-party HTTP proxy service.",
+	"keywords": [
+		"laravel",
+		"proxy",
+		"curl"
+	],
     "license" : "MIT",
 	"authors": [
 		{
