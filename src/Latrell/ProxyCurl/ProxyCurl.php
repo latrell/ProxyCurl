@@ -203,7 +203,7 @@ class ProxyCurl
 			}
 			$curl = new Curl;
 			$curl->setOpt(CURLOPT_TIMEOUT, 3);
-			$curl->get('http://webapi.http.zhimacangku.com/getip', $params);
+			$curl->get('http://http.tiqu.alicdns.com/getip3', $params);
 			$curl->close();
 			if ($curl->error) {
 				throw new ProxyCurlException($curl->error_message, $curl->error_code);
