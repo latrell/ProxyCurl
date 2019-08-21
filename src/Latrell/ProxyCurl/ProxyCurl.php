@@ -148,83 +148,56 @@ class ProxyCurl
 	/**
 	 * 获取代理IP
 	 *
-	 * @param bool $force 是否跳过缓存强制获取
-	 *
 	 * @return ProxyModel
 	 * @throws ProxyCurlException
 	 */
-	public function getShortS5Proxy($force = false)
+	public function getShortS5Proxy()
 	{
-		$proxy = null;
+		// 请求频率限制2秒一次，这里限制5秒，因为HTTP请求可能需要占用3秒。
+		Cache::lock('ShortS5Proxy', 5)->block(10);
 
-		// 在Redis中缓存使用过的IP列表。
-		$ip_list_key = "ShortS5Proxy@city:{$this->city_code}";
-
-		// 若不跳过缓存，则从使用过的IP列表中获取。
-		if (! $force) {
-			// 若获取到过期的代理，则丢弃并继续获取，
-			// 直至获取到未过期代理或列表尾部。
-			do {
-				$proxy = unserialize(Redis::lpop($ip_list_key));
-			} while ($proxy instanceof ProxyModel && $proxy->timeout < now()->subSeconds(5));
+		$params = [
+			'num' => '1', // 提取IP数量
+			'pro' => '', // 省份，默认全国
+			'city' => '', // 城市，默认全国
+			'regions' => '', // 全国混拨地区
+			'yys' => '0', // 运营商：0:不限，100026:联通，100017:电信
+			'port' => '2', // IP协议：1:HTTP，2:SOCK5，11:HTTPS
+			'time' => $this->time, // 稳定时长
+			'type' => '2', // 数据格式：1:TXT，2:JSON，3:html
+			'pack' => $this->pack, // 用户套餐ID
+			'ts' => '1', // 是否显示IP过期时间：1:显示，2:不显示
+			'ys' => '1', // 是否显示IP运营商：1:显示
+			'cs' => '1', // 否显示位置：1:显示
+			'lb' => '1', // 分隔符：1:\r\n，2:/br，3:\r，4:\n，5:\t，6:自定义
+			'sb' => '', // 自定义分隔符
+			'mr' => '1',// 去重选择：1:360天去重,2:单日去重,3:不去重
+			'pb' => '45', // 端口位数：4:4位端口，5:5位端口
+		];
+		if ($this->city_code) {
+			$params['pro'] = substr($this->city_code, 0, 2) . '0000';
+			$params['city'] = $this->city_code;
 		}
-
-		// 若代理最近使用时间小于间隔时间，则放回IP列表尾部，强制申请新的IP。
-		if ($proxy && $proxy->use_time > now()->subSeconds($this->interval)) {
-			Redis::rpush($ip_list_key, serialize($proxy));
-			$proxy = null;
+		$curl = new Curl;
+		$curl->setOpt(CURLOPT_TIMEOUT, 3);
+		$curl->get('http://http.tiqu.alicdns.com/getip3', $params);
+		$curl->close();
+		if ($curl->error) {
+			throw new ProxyCurlException($curl->error_message, $curl->error_code);
 		}
-
-		if (! $proxy) {
-			// 请求频率限制2秒一次，这里限制5秒，因为HTTP请求可能需要占用3秒。
-			Cache::lock('ShortS5Proxy', 5)->block(10);
-
-			$params = [
-				'num' => '1', // 提取IP数量
-				'pro' => '', // 省份，默认全国
-				'city' => '', // 城市，默认全国
-				'regions' => '', // 全国混拨地区
-				'yys' => '0', // 运营商：0:不限，100026:联通，100017:电信
-				'port' => '2', // IP协议：1:HTTP，2:SOCK5，11:HTTPS
-				'time' => $this->time, // 稳定时长
-				'type' => '2', // 数据格式：1:TXT，2:JSON，3:html
-				'pack' => $this->pack, // 用户套餐ID
-				'ts' => '1', // 是否显示IP过期时间：1:显示，2:不显示
-				'ys' => '1', // 是否显示IP运营商：1:显示
-				'cs' => '1', // 否显示位置：1:显示
-				'lb' => '1', // 分隔符：1:\r\n，2:/br，3:\r，4:\n，5:\t，6:自定义
-				'sb' => '', // 自定义分隔符
-				'mr' => '1',// 去重选择：1:360天去重,2:单日去重,3:不去重
-				'pb' => '45', // 端口位数：4:4位端口，5:5位端口
-			];
-			if ($this->city_code) {
-				$params['pro'] = substr($this->city_code, 0, 2) . '0000';
-				$params['city'] = $this->city_code;
-			}
-			$curl = new Curl;
-			$curl->setOpt(CURLOPT_TIMEOUT, 3);
-			$curl->get('http://http.tiqu.alicdns.com/getip3', $params);
-			$curl->close();
-			if ($curl->error) {
-				throw new ProxyCurlException($curl->error_message, $curl->error_code);
-			}
-			$json = json_decode($curl->response);
-			if (! isset($json->success)) {
-				throw new ProxyCurlException('Unexpected data structure: ' . $curl->response);
-			}
-			if (! $json->success) {
-				throw new ProxyCurlException($json->msg, $json->code);
-			}
-			$proxy = new ProxyModel;
-			$proxy->ip = $json->data[0]->ip;
-			$proxy->port = $json->data[0]->port;
-			$proxy->address = $json->data[0]->city;
-			$proxy->isp = $json->data[0]->isp;
-			$proxy->timeout = Carbon::parse($json->data[0]->expire_time);
+		$json = json_decode($curl->response);
+		if (! isset($json->success)) {
+			throw new ProxyCurlException('Unexpected data structure: ' . $curl->response);
 		}
-
-		$proxy->use_time = now();
-		Redis::rpush($ip_list_key, serialize($proxy));
+		if (! $json->success) {
+			throw new ProxyCurlException($json->msg, $json->code);
+		}
+		$proxy = new ProxyModel;
+		$proxy->ip = $json->data[0]->ip;
+		$proxy->port = $json->data[0]->port;
+		$proxy->address = $json->data[0]->city;
+		$proxy->isp = $json->data[0]->isp;
+		$proxy->timeout = Carbon::parse($json->data[0]->expire_time);
 		return $proxy;
 	}
 
@@ -239,14 +212,7 @@ class ProxyCurl
 	 */
 	public function get($url, $data = [])
 	{
-		$this->setProxy();
-		$this->curl->get($url, $data);
-		if ($this->error) {
-			if (! $this->strict && $this->error_code === 7) {
-				$this->resetProxy();
-				$this->curl->get($url, $data);
-			}
-		}
+		$this->proxyRequest('GET', $url, $data);
 		return $this;
 	}
 
@@ -261,14 +227,7 @@ class ProxyCurl
 	 */
 	public function post($url, $data = [])
 	{
-		$this->setProxy();
-		$this->curl->post($url, $data);
-		if ($this->error) {
-			if (! $this->strict && $this->error_code === 7) {
-				$this->resetProxy();
-				$this->curl->post($url, $data);
-			}
-		}
+		$this->proxyRequest('POST', $url, $data);
 		return $this;
 	}
 
@@ -308,45 +267,84 @@ class ProxyCurl
 	}
 
 	/**
-	 * 重置CURL代理配置
+	 * 使用代理发起请求
+	 *
+	 * @param string $method GET or POST
+	 * @param string $url
+	 * @param array $data
+	 *
+	 * @throws Exception
 	 */
-	protected function resetProxy()
+	protected function proxyRequest($method, $url, $data = [])
 	{
+		// 重置代理配置。
 		$this->setOpt(CURLOPT_PROXY, null);
 		$this->setOpt(CURLOPT_PROXYPORT, null);
 		$this->setOpt(CURLOPT_PROXYTYPE, null);
 		$this->setOpt(CURLOPT_PROXYAUTH, null);
-	}
 
-	/**
-	 * 设置使用的代理
-	 *
-	 * @throws Exception
-	 */
-	protected function setProxy()
-	{
-		$this->resetProxy();
-		if (! $this->enable) {
-			return;
-		}
+		// 获取的代理。
 		$proxy = null;
-		try {
-			$proxy = $this->getShortS5Proxy();
-		} catch (ProxyCurlException $e) {
-			if ($this->strict || $e->getCode() != 115) {
-				throw $e;
-			} else {
-				$city_code = $this->city_code;
-				$this->city_code = null;
-				$proxy = $this->getShortS5Proxy();
-				$this->city_code = $city_code;
+
+		// 若启用代理，则获取一个代理发起请求。
+		if ($this->enable) {
+
+			// 在Redis中缓存使用过的IP列表。
+			$ip_list_key = "ShortS5Proxy@city:{$this->city_code}";
+
+			// 从使用过的IP列表中获取。
+			// 若获取到过期的代理，则丢弃并继续获取，直至获取到未过期代理或列表尾部。
+			do {
+				$proxy = unserialize(Redis::lpop($ip_list_key));
+			} while ($proxy && $proxy->timeout < now()->subSeconds(5));
+
+			// 若代理最近使用时间小于间隔时间，则放回IP列表尾部，强制申请新的IP。
+			if ($proxy && $proxy->use_time > now()->subSeconds($this->interval)) {
+				Redis::rpush($ip_list_key, serialize($proxy));
+				$proxy = null;
+			}
+
+			// 不存在代理则申请一个新的代理。
+			if (! $proxy) {
+				try {
+					$proxy = $this->getShortS5Proxy();
+				} catch (ProxyCurlException $e) {
+					if ($this->strict || $e->getCode() != 115) {
+						throw $e;
+					}
+					// 非严格模式下，存在城市代码，则清空城市代码再获取一次。
+					if ($this->city_code) {
+						$city_code = $this->city_code;
+						$this->city_code = null;
+						try {
+							$proxy = $this->getShortS5Proxy();
+						} catch (ProxyCurlException $e) {
+							// 第二次获取还失败，则使用本机IP直接发起请求。
+							if ($e->getCode() != 115) {
+								throw $e;
+							}
+						}
+						$this->city_code = $city_code;
+					}
+				}
 			}
 		}
+
+		// 获取到代理则设置CURL代理。
 		if ($proxy) {
 			$this->setOpt(CURLOPT_PROXY, $proxy->ip);
 			$this->setOpt(CURLOPT_PROXYPORT, $proxy->port);
 			$this->setOpt(CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);
 			$this->setOpt(CURLOPT_PROXYAUTH, CURLAUTH_BASIC);
+		}
+
+		// 发起CURL请求。
+		call_user_func([$this->curl, strtolower($method)], $url, $data);
+
+		// 未发生代理连接超时的错误，则将使用过的代理放到缓存列表尾部。
+		if ($this->error_code !== 7) {
+			$proxy->use_time = now(); // 记录最近使用时间。
+			Redis::rpush($ip_list_key, serialize($proxy));
 		}
 	}
 }

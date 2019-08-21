@@ -12,9 +12,7 @@ class ShortS5ProxyCommand extends Command
 	 *
 	 * @var string
 	 */
-	protected $signature = 'proxy:short-s5
-							{--C|city= : IP城市代码，默认全国。}
-							{--F|force : 是否跳过缓存强制获取。}';
+	protected $signature = 'proxy:short-s5 {--C|city= : IP城市代码，默认全国。}';
 
 	/**
 	 * The console command description.
@@ -42,8 +40,7 @@ class ShortS5ProxyCommand extends Command
 	public function handle()
 	{
 		$city_code =  $this->option('city');
-		$force = $this->option('force');
-		$proxy = ProxyCurl::init()->setCity($city_code)->getShortS5Proxy($force);
+		$proxy = ProxyCurl::init()->setCity($city_code)->getShortS5Proxy();
 		$this->line($proxy);
 	}
 }

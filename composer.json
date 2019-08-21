@@ -14,11 +14,25 @@
 		}
 	],
 	"require": {
-		"curl/curl": "^2.2"
+		"php": ">=7.1.0",
+		"ext-curl": "*",
+		"ext-json": "*",
+		"curl/curl": "^2.2",
+		"illuminate/support": "^5.7.15 | 5.8.* | ^6.0"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^7.0 | ^8.0",
+		"predis/predis": "^1.1",
+		"orchestra/testbench": "3.7.* | 3.8.*"
 	},
 	"autoload": {
 		"psr-4": {
 			"Latrell\\ProxyCurl\\": "src/Latrell/ProxyCurl/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Latrell\\ProxyCurl\\Tests\\": "tests/"
 		}
 	},
 	"extra": {
@@ -27,7 +41,7 @@
 				"Latrell\\ProxyCurl\\ProxyCurlServiceProvider"
 			],
 			"aliases": {
-				"Ethereum": "Latrell\\ProxyCurl\\Facades\\ProxyCurl"
+				"ProxyCurl": "Latrell\\ProxyCurl\\Facades\\ProxyCurl"
 			}
 		}
 	}
