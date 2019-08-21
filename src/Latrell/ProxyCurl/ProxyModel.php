@@ -20,6 +20,7 @@ class ProxyModel
 			'address' => $this->address,
 			'isp' => $this->isp,
 			'export_ip' => $this->export_ip,
+			'timeout' => (string) $this->timeout,
 		], JSON_UNESCAPED_UNICODE);
 	}
 }

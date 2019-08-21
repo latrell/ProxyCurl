@@ -27,6 +27,23 @@ class Test extends TestCase
 		$curl = ProxyCurl::init();
 		// $curl->get('https://ifconfig.me/ip');
 		$curl->get('https://www.latrell.me/wp-content/uploads/ip.php');
+		if ($curl->error) {
+			throw new ProxyCurlException($curl->error_message, $curl->error_code);
+		}
+		$this->assertEquals($curl->export_ip, $curl->response);
+	}
+
+	/**
+	 * @throws ProxyCurlException
+	 */
+	public function testPostRequest()
+	{
+		$curl = ProxyCurl::init();
+		// $curl->get('https://ifconfig.me/ip');
+		$curl->post('https://www.latrell.me/wp-content/uploads/ip.php');
+		if ($curl->error) {
+			throw new ProxyCurlException($curl->error_message, $curl->error_code);
+		}
 		$this->assertEquals($curl->export_ip, $curl->response);
 	}
 

@@ -14,6 +14,8 @@ class ProxyCurl
 	protected $pack, $time;
 	protected $interval;
 
+	protected $api_url;
+
 	/**
 	 * @var bool 当地理位置没有代理时，是否使用全国随机IP
 	 */
@@ -34,13 +36,14 @@ class ProxyCurl
 	 */
 	public $export_ip = null;
 
-	public function __construct($enable, $pack, $time, $interval, $strict)
+	public function __construct(array $config)
 	{
-		$this->enable = $enable;
-		$this->pack = $pack;
-		$this->time = $time;
-		$this->interval = $interval;
-		$this->strict = $strict;
+		$this->enable = $config['enable'];
+		$this->pack = $config['pack'];
+		$this->time = $config['time'];
+		$this->interval = $config['interval'];
+		$this->api_url = $config['api_url'];
+		$this->strict = $config['strict'];
 	}
 
 	/**
@@ -193,7 +196,7 @@ class ProxyCurl
 		}
 		$curl = new Curl;
 		$curl->setOpt(CURLOPT_TIMEOUT, 3);
-		$curl->get('http://http.tiqu.alicdns.com/getip3', $params);
+		$curl->get($this->api_url, $params);
 		$curl->close();
 		if ($curl->error) {
 			throw new ProxyCurlException($curl->error_message, $curl->error_code);

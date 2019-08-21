@@ -22,6 +22,11 @@ return [
 	'interval' => env('PROXY_CURL_INTERVAL', 0),
 
 	/**
+	 * 提取IP接口的地址，不包含 ? 后面的参数。
+	 */
+	'api_url' => env('PROXY_CURL_API_URL', 'http://webapi.http.zhimacangku.com/getip'),
+
+	/**
 	 * 非严格模式下，当指定城市没有代理时，将使用全国随机IP
 	 */
 	'strict' => env('PROXY_CURL_STRICT', false),

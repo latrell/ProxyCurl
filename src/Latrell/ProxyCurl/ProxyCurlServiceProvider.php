@@ -2,7 +2,6 @@
 
 namespace Latrell\ProxyCurl;
 
-use Curl\Curl;
 use Illuminate\Support\ServiceProvider;
 use Latrell\ProxyCurl\Console\CurlCommand;
 use Latrell\ProxyCurl\Console\ShortS5ProxyCommand;
@@ -40,12 +39,8 @@ class ProxyCurlServiceProvider extends ServiceProvider
 		$this->mergeConfigFrom(__DIR__ . '/../../../config/config.php', 'proxy-curl');
 
 		$this->app->singleton('proxy-curl', function ($app) {
-			$enable = $app->config->get('proxy-curl.enable');
-			$pack = $app->config->get('proxy-curl.pack');
-			$time = $app->config->get('proxy-curl.time');
-			$interval = $app->config->get('proxy-curl.interval');
-			$strict = $app->config->get('proxy-curl.strict');
-			return new ProxyCurl($enable, $pack, $time, $interval, $strict);
+			$config = $app->config->get('proxy-curl');
+			return new ProxyCurl($config);
 		});
 
 		$this->registerCommands();
