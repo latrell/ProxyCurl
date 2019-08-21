@@ -13,7 +13,6 @@ class ProxyModel implements ArrayAccess, JsonSerializable
 	public $isp;
 	public $export_ip;
 	public $timeout;
-	public $use_time;
 
 	public function __toString()
 	{
@@ -33,7 +32,7 @@ class ProxyModel implements ArrayAccess, JsonSerializable
 			'address' => $this->address,
 			'isp' => $this->isp,
 			'export_ip' => $this->export_ip,
-			'timeout' => (string) $this->timeout,
+			'timeout' => $this->timeout,
 		];
 	}
 

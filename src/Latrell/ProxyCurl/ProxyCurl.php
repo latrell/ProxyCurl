@@ -214,7 +214,7 @@ class ProxyCurl
 		$proxy->address = $json->data[0]->city;
 		$proxy->isp = $json->data[0]->isp;
 		$proxy->export_ip = $json->data[0]->outip ?? $json->data[0]->ip;
-		$proxy->timeout = Carbon::parse($json->data[0]->expire_time);
+		$proxy->timeout = Carbon::parse($json->data[0]->expire_time)->getTimestamp();
 		return $proxy;
 	}
 
@@ -314,7 +314,7 @@ class ProxyCurl
 			// 若获取到过期的代理，则丢弃并继续获取，直至获取到未过期代理或列表尾部。
 			do {
 				$proxy = unserialize(Redis::lpop($ip_list_key));
-			} while ($proxy && $proxy->timeout < now()->subSeconds(5));
+			} while ($proxy && $proxy->timeout < now()->subSeconds(5)->getTimestamp());
 
 			// 若代理最近使用时间小于间隔时间，则放回IP列表尾部，强制申请新的IP。
 			if ($proxy && $proxy->use_time > now()->subSeconds($this->interval)) {
