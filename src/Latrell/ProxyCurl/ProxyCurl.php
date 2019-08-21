@@ -361,7 +361,7 @@ class ProxyCurl
 		call_user_func([$this->curl, strtolower($method)], $url, $data);
 
 		// 未发生代理连接超时的错误，则将使用过的代理放到缓存列表尾部。
-		if ($this->error_code !== 7) {
+		if ($proxy && $this->curl->error_code !== 7) {
 			$proxy->use_time = now(); // 记录最近使用时间。
 			Redis::rpush($ip_list_key, serialize($proxy));
 		}
