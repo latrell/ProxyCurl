@@ -29,6 +29,11 @@ class ProxyCurl
 	 */
 	protected $curl;
 
+	/*
+	 * 当前使用代理的出口IP
+	 */
+	public $export_ip = null;
+
 	public function __construct($enable, $pack, $time, $interval, $strict)
 	{
 		$this->enable = $enable;
@@ -53,6 +58,12 @@ class ProxyCurl
 	 */
 	public function init()
 	{
+		$this->reset();
+		return $this;
+	}
+
+	public function reset()
+	{
 		if ($this->curl) {
 			$this->curl->reset();
 		} else {
@@ -61,6 +72,8 @@ class ProxyCurl
 
 		$this->setOpt(CURLOPT_SSL_VERIFYPEER, false);
 		$this->setOpt(CURLOPT_SSL_VERIFYHOST, false);
+
+		$this->export_ip = null;
 
 		return $this;
 	}
@@ -197,6 +210,7 @@ class ProxyCurl
 		$proxy->port = $json->data[0]->port;
 		$proxy->address = $json->data[0]->city;
 		$proxy->isp = $json->data[0]->isp;
+		$proxy->export_ip = $json->data[0]->outip ?? $json->data[0]->ip;
 		$proxy->timeout = Carbon::parse($json->data[0]->expire_time);
 		return $proxy;
 	}
@@ -278,6 +292,7 @@ class ProxyCurl
 	protected function proxyRequest($method, $url, $data = [])
 	{
 		// 重置代理配置。
+		$this->export_ip = null;
 		$this->setOpt(CURLOPT_PROXY, null);
 		$this->setOpt(CURLOPT_PROXYPORT, null);
 		$this->setOpt(CURLOPT_PROXYTYPE, null);
@@ -332,6 +347,7 @@ class ProxyCurl
 
 		// 获取到代理则设置CURL代理。
 		if ($proxy) {
+			$this->export_ip = $proxy->export_ip;
 			$this->setOpt(CURLOPT_PROXY, $proxy->ip);
 			$this->setOpt(CURLOPT_PROXYPORT, $proxy->port);
 			$this->setOpt(CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5);

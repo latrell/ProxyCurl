@@ -8,6 +8,7 @@ class ProxyModel
 	public $port;
 	public $address;
 	public $isp;
+	public $export_ip;
 	public $timeout;
 	public $use_time;
 
@@ -18,6 +19,7 @@ class ProxyModel
 			'port' => $this->port,
 			'address' => $this->address,
 			'isp' => $this->isp,
+			'export_ip' => $this->export_ip,
 		], JSON_UNESCAPED_UNICODE);
 	}
 }

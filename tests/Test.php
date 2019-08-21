@@ -25,8 +25,9 @@ class Test extends TestCase
 	public function testGetRequest()
 	{
 		$curl = ProxyCurl::init();
-		$curl->get('https://ifconfig.me/ip');
-		$this->assertNotEmpty($curl->response);
+		// $curl->get('https://ifconfig.me/ip');
+		$curl->get('https://www.latrell.me/wp-content/uploads/ip.php');
+		$this->assertEquals($curl->export_ip, $curl->response);
 	}
 
 	protected function getPackageProviders($app)
