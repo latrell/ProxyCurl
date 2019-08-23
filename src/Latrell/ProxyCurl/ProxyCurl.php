@@ -211,8 +211,8 @@ class ProxyCurl
 		$proxy = new ProxyModel;
 		$proxy->ip = $json->data[0]->ip;
 		$proxy->port = $json->data[0]->port;
-		$proxy->address = $json->data[0]->city;
-		$proxy->isp = $json->data[0]->isp;
+		$proxy->address = $json->data[0]->city ?? '';
+		$proxy->isp = $json->data[0]->isp ?? '';
 		$proxy->export_ip = $json->data[0]->outip ?? $json->data[0]->ip;
 		$proxy->timeout = Carbon::parse($json->data[0]->expire_time)->getTimestamp();
 		return $proxy;
