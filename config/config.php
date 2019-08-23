@@ -24,7 +24,7 @@ return [
 	/**
 	 * 提取IP接口的地址，不包含 ? 后面的参数。
 	 */
-	'api_url' => env('PROXY_CURL_API_URL', 'http://webapi.http.zhimacangku.com/getip'),
+	'api_url' => env('PROXY_CURL_API_URL', 'http://http.tiqu.alicdns.com/getip3'),
 
 	/**
 	 * 非严格模式下，当指定城市没有代理时，将使用全国随机IP
