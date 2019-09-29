@@ -15,6 +15,9 @@ return [
 	// 7 : "48小时至72小时【5芝麻币/个】"
 	'time' => env('PROXY_CURL_TIME', 1),
 
+	// IP协议：1:HTTP，2:SOCK5，11:HTTPS
+	'protocol' => env('PROXY_CURL_PROTOCOL', 2),
+
 	/**
 	 * IP限速间隔时间
 	 * 当大于零时，间隔时间内发起的请求会强制申请新IP

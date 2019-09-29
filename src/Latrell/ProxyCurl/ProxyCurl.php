@@ -11,7 +11,7 @@ use Latrell\ProxyCurl\Exception as ProxyCurlException;
 class ProxyCurl
 {
 	protected $enable;
-	protected $pack, $time;
+	protected $pack, $time, $protocol;
 	protected $interval;
 
 	protected $api_url;
@@ -41,6 +41,7 @@ class ProxyCurl
 		$this->enable = $config['enable'];
 		$this->pack = $config['pack'];
 		$this->time = $config['time'];
+		$this->protocol = $config['protocol'];
 		$this->interval = $config['interval'];
 		$this->api_url = $config['api_url'];
 		$this->strict = $config['strict'];
@@ -178,7 +179,7 @@ class ProxyCurl
 			'city' => '', // 城市，默认全国
 			'regions' => '', // 全国混拨地区
 			'yys' => '0', // 运营商：0:不限，100026:联通，100017:电信
-			'port' => '2', // IP协议：1:HTTP，2:SOCK5，11:HTTPS
+			'port' => $this->protocol, // IP协议：1:HTTP，2:SOCK5，11:HTTPS
 			'time' => $this->time, // 稳定时长
 			'type' => '2', // 数据格式：1:TXT，2:JSON，3:html
 			'pack' => $this->pack, // 用户套餐ID
