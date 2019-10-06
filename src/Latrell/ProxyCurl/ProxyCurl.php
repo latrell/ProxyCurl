@@ -358,11 +358,18 @@ class ProxyCurl
 			$this->setOpt(CURLOPT_PROXYAUTH, CURLAUTH_BASIC);
 		}
 
-		// 发起CURL请求。
-		call_user_func([$this->curl, strtolower($method)], $url, $data);
+		// 若出现代理错误，最多重试3次。
+		$try_count = 0;
+		do {
+			$try_count++;
+
+			// 发起CURL请求。
+			call_user_func([$this->curl, strtolower($method)], $url, $data);
+
+		} while (in_array($this->curl->error_code, [7, 28, 35]) && $try_count < 3);
 
 		// 未发生代理连接超时的错误，则将使用过的代理放到缓存列表尾部。
-		if ($proxy && $this->curl->error_code !== 7) {
+		if ($proxy && ! in_array($this->curl->error_code, [7, 28, 35])) {
 			$proxy->use_time = now(); // 记录最近使用时间。
 			Redis::rpush($ip_list_key, serialize($proxy));
 		}
