@@ -165,16 +165,18 @@ class ProxyCurl
 	/**
 	 * 获取代理IP
 	 *
+	 * @param int $num 提取数量，单次最多400个
+	 *
 	 * @return ProxyModel
 	 * @throws ProxyCurlException
 	 */
-	public function getShortS5Proxy()
+	public function getShortS5Proxy($num = 1)
 	{
 		// 请求频率限制2秒一次，这里限制5秒，因为HTTP请求可能需要占用3秒。
 		Cache::lock('ShortS5Proxy', 5)->block(10);
 
 		$params = [
-			'num' => '1', // 提取IP数量
+			'num' => $num, // 提取IP数量
 			'pro' => '', // 省份，默认全国
 			'city' => '', // 城市，默认全国
 			'regions' => '', // 全国混拨地区
