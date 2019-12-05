@@ -167,7 +167,7 @@ class ProxyCurl
 	 *
 	 * @param int $num 提取数量，单次最多400个
 	 *
-	 * @return ProxyModel
+	 * @return array
 	 * @throws ProxyCurlException
 	 */
 	public function getShortS5Proxy($num = 1)
@@ -211,14 +211,18 @@ class ProxyCurl
 		if (! $json->success) {
 			throw new ProxyCurlException($json->msg, $json->code);
 		}
-		$proxy = new ProxyModel;
-		$proxy->ip = $json->data[0]->ip;
-		$proxy->port = $json->data[0]->port;
-		$proxy->address = $json->data[0]->city ?? '';
-		$proxy->isp = $json->data[0]->isp ?? '';
-		$proxy->export_ip = $json->data[0]->outip ?? $json->data[0]->ip;
-		$proxy->timeout = Carbon::parse($json->data[0]->expire_time)->getTimestamp();
-		return $proxy;
+		$result = [];
+		foreach ($json->data as $item) {
+			$proxy = new ProxyModel;
+			$proxy->ip = $item->ip;
+			$proxy->port = $item->port;
+			$proxy->address = $item->city ?? '';
+			$proxy->isp = $item->isp ?? '';
+			$proxy->export_ip = $item->outip ?? $item->ip;
+			$proxy->timeout = Carbon::parse($item->expire_time)->getTimestamp();
+			$result[] = $proxy;
+		}
+		return $result;
 	}
 
 	/**
@@ -328,7 +332,7 @@ class ProxyCurl
 			// 不存在代理则申请一个新的代理。
 			if (! $proxy) {
 				try {
-					$proxy = $this->getShortS5Proxy();
+					$proxy = $this->getShortS5Proxy()[0];
 				} catch (ProxyCurlException $e) {
 					if ($this->strict || $e->getCode() != 115) {
 						throw $e;
@@ -338,7 +342,7 @@ class ProxyCurl
 						$city_code = $this->city_code;
 						$this->city_code = null;
 						try {
-							$proxy = $this->getShortS5Proxy();
+							$proxy = $this->getShortS5Proxy()[0];
 						} catch (ProxyCurlException $e) {
 							// 第二次获取还失败，则使用本机IP直接发起请求。
 							if ($e->getCode() != 115) {
